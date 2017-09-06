@@ -364,6 +364,31 @@ io.on('connection', function (socket) {
              pool.query('INSERT INTO logging SET name=' + currentPlayer.name + ', reason="Invalid login attempt as admin"');
         }
     });
+    
+    socket.on('setMass', function(data) {
+        if (currentPlayer.admin) {
+            var mass = 0;
+            var worked = false;
+            for (var e = 0; e < users.length; e++) {
+                if (users[e].name === data[0] && !worked) {
+                    if (data.length > 1) {
+                        users[e].massTotal = data[1];
+                    }
+                    socket.emit('serverMSG', 'User ' + users[e].name + '\'s mass was changed to ' + data[1] + ' by ' + currentPlayer.name);
+                    //sockets[users[e].id].emit('kick', reason);
+                    //sockets[users[e].id].disconnect();
+                    //users.splice(e, 1);
+                    worked = true;
+                }
+            }
+            if (!worked) {
+                socket.emit('serverMSG', 'Could not locate user or user is an admin.');
+            }
+        } else {
+            console.log('[ADMIN] ' + currentPlayer.name + ' is trying to use -mass but isn\'t an admin.');
+            socket.emit('serverMSG', 'You are not permitted to use this command.');
+        }
+    });
 
     socket.on('kick', function(data) {
         if (currentPlayer.admin) {
